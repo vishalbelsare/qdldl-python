@@ -33,23 +33,26 @@ class get_pybind_include(object):
         return pybind11.get_include(self.user)
 
 
+cmake_args = []
+# What variables from the environment do we wish to pass on to cmake as variables?
+cmake_env_vars = ('CMAKE_GENERATOR', 'CMAKE_GENERATOR_PLATFORM', 'CMAKE_OSX_ARCHITECTURES')
+for cmake_env_var in cmake_env_vars:
+    cmake_var = os.environ.get(cmake_env_var)
+    if cmake_var:
+        cmake_args.extend([f'-D{cmake_env_var}={cmake_var}'])
+
 # Add parameters to cmake_args and define_macros
-cmake_args = ["-DUNITTESTS=OFF"]
+cmake_args += ["-DQDLDL_UNITTESTS=OFF"]
 cmake_build_flags = []
 lib_subdir = []
 
 # Check if windows linux or mac to pass flag
 if system() == 'Windows':
-    cmake_args += ['-G', 'Visual Studio 14 2015']
-    # Differentiate between 32-bit and 64-bit
-    if sys.maxsize // 2 ** 32 > 0:
-        cmake_args[-1] += ' Win64'
     cmake_build_flags += ['--config', 'Release']
     lib_name = 'qdldlamd.lib'
     lib_subdir = ['Release']
 
 else:  # Linux or Mac
-    cmake_args += ['-G', 'Unix Makefiles']
     lib_name = 'libqdldlamd.a'
 
 # Set optimizer flag
@@ -108,7 +111,7 @@ def readme():
 
 
 setup(name='qdldl',
-      version='0.1.5.post0',
+      version='0.1.7.post5',
       author='Bartolomeo Stellato, Paul Goulart, Goran Banjac',
       author_email='bartolomeo.stellato@gmail.com',
       description='QDLDL, a free LDL factorization routine.',
@@ -116,7 +119,6 @@ setup(name='qdldl',
       long_description_content_type='text/markdown',
       package_dir={'qdldl': 'module'},
       include_package_data=True,  # Include package data from MANIFEST.in
-      setup_requires=["setuptools>=18.0", "pybind11"],
       install_requires=["numpy >= 1.7", "scipy >= 0.13.2"],
       license='Apache 2.0',
       url="https://github.com/oxfordcontrol/qdldl-python/",
